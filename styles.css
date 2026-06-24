@@ -1,3 +1,5 @@
+* { box-sizing: border-box; }
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -15,7 +17,7 @@ body {
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    z-index: 999;
+    z-index: 1000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     max-width: 90%;
     text-align: center;
@@ -23,7 +25,92 @@ body {
 .banner.hidden  { display: none; }
 .banner.info    { background: #2563eb; color: white; }
 .banner.warning { background: #e53e3e; color: white; }
-.banner.success { background: #38a169; color: white; }
+
+/* ── Modal ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal h2 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    color: #1a1a1a;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-form label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 2px;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    width: 100%;
+}
+
+.modal-form textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    padding: 9px 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-cancel:hover { background: #f5f5f5; }
+
+.btn-save {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #1a1a1a;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+.btn-save:hover { background: #333; }
 
 /* ── Contenedor ── */
 .container {
@@ -35,7 +122,44 @@ body {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-h1 { text-align: center; margin-bottom: 20px; }
+/* ── Header ── */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.logo {
+    height: 52px;
+    width: auto;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+/* ── Resumen ── */
+.summary {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.sum-item {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+.sum-pending   { background: #f3f4f6; color: #374151; }
+.sum-overdue   { background: #fee2e2; color: #e53e3e; }
+.sum-completed { background: #dcfce7; color: #16a34a; }
 
 /* ── Formulario ── */
 .task-form {
@@ -55,7 +179,6 @@ h1 { text-align: center; margin-bottom: 20px; }
     font-size: 14px;
     font-family: Arial, sans-serif;
     width: 100%;
-    box-sizing: border-box;
 }
 
 .task-form textarea {
@@ -77,123 +200,11 @@ h1 { text-align: center; margin-bottom: 20px; }
 }
 .task-form button:hover { background: #333; }
 
-/* ── Grupos de filtros ── */
-.filter-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-
-.filter-label {
-    color: #555;
-    font-weight: bold;
-    min-width: 90px;
-}
-
-.filter-btn {
-    padding: 4px 12px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    background: white;
-    font-size: 12px;
-    cursor: pointer;
-}
-.filter-btn:hover  { background: #f0f0f0; }
-.filter-btn.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-
-/* ── Lista ── */
-ul { list-style: none; padding: 0; margin: 16px 0 0; }
-
-.empty { text-align: center; color: #aaa; margin-top: 20px; }
-
-li {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    border-left: 5px solid #ddd;
-    gap: 10px;
-}
-
-li.pending   { border-left-color: #aaa; background: #fff; }
-li.overdue   { border-left-color: #e53e3e; background: #fff5f5; }
-li.completed { border-left-color: #38a169; background: #f0fff4; }
-
-.task-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-}
-
-.task-text { font-size: 15px; font-weight: 600; }
-.crossed   { text-decoration: line-through; color: #aaa; }
-
-.task-notes {
-    font-size: 13px;
-    color: #555;
-    background: #f9f9f9;
-    border-left: 3px solid #ddd;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.task-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.badge-pill {
-    font-size: 11px;
-    font-weight: bold;
-    color: white;
-    padding: 2px 10px;
-    border-radius: 12px;
-}
-
-.due-date { font-size: 12px; color: #666; }
-
-.badge {
-    font-size: 11px;
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 12px;
-}
-.overdue-badge   { background: #e53e3e; color: white; }
-.completed-badge { background: #38a169; color: white; }
-
-/* ── Acciones ── */
-.actions {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex-shrink: 0;
-}
-
-.actions button {
-    font-size: 12px;
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: white;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.actions button:hover { background: #f5f5f5; }
-
-/* ── Filtros colapsables ── */
+/* ── Filtros ── */
 .filters-wrapper { margin-bottom: 16px; }
 
 .filters-toggle {
-    padding: 8px 18px;
+    padding: 7px 16px;
     border: 1px solid #ddd;
     border-radius: 20px;
     background: white;
@@ -249,3 +260,94 @@ li.completed { border-left-color: #38a169; background: #f0fff4; }
     font-weight: bold;
 }
 .clear-filters:hover { background: #fff5f5; }
+
+/* ── Lista ── */
+ul { list-style: none; padding: 0; margin: 0; }
+.empty { text-align: center; color: #aaa; margin-top: 20px; }
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    border-left: 5px solid #ddd;
+    gap: 10px;
+}
+
+li.pending   { border-left-color: #aaa; background: #fff; }
+li.overdue   { border-left-color: #e53e3e; background: #fff5f5; }
+li.completed { border-left-color: #38a169; background: #f0fff4; }
+
+.task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.task-text { font-size: 15px; font-weight: 600; }
+.crossed   { text-decoration: line-through; color: #aaa; }
+
+.task-notes {
+    font-size: 13px;
+    color: #555;
+    background: #f9f9f9;
+    border-left: 3px solid #ddd;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.badge-pill {
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+.due-date { font-size: 12px; color: #666; }
+
+.badge {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+.overdue-badge   { background: #e53e3e; color: white; }
+.completed-badge { background: #38a169; color: white; }
+
+/* ── Botones de acción horizontales ── */
+.actions {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.actions button {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    border: none;
+    font-weight: bold;
+}
+
+.btn-complete { background: #1a1a1a; color: white; }
+.btn-complete:hover { background: #333; }
+.btn-edit { background: #e5e7eb; color: #1a1a1a; }
+.btn-edit:hover { background: #d1d5db; }
+.btn-delete { background: #fee2e2; color: #e53e3e; }
+.btn-delete:hover { background: #fecaca; }
