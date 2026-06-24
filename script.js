@@ -18,6 +18,8 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 const tasksCol = collection(db, "tasks");
 
+let editingId = null;
+
 const memberColors = {
     "Cristian": "#2563eb", "Andrés": "#7c3aed",
     "Ignacio":  "#0891b2", "Felipe": "#d97706",
@@ -54,8 +56,8 @@ function showBanner(msg, type = "info") {
 function notify(msg, type = "info") {
     showBanner(msg, type);
     if ("Notification" in window && Notification.permission === "granted") {
-        const titles = { info: "📋 Gestor de Tareas", warning: "⚠️ Tarea tardía" };
-        new Notification(titles[type] || "Gestor", { body: msg });
+        const titles = { info: "📋 Old Fresco", warning: "⚠️ Tarea tardía" };
+        new Notification(titles[type] || "Old Fresco", { body: msg });
     }
 }
 
@@ -73,17 +75,30 @@ function formatDate(dateStr) {
     return `${d}/${m}/${y}`;
 }
 
-// ── Toggle filtros ────────────────────────────────────────────
+// ── Resumen ───────────────────────────────────────────────────
+function updateSummary(tasks) {
+    const pending   = tasks.filter(({ data }) => getStatus(data) === "pending").length;
+    const overdue   = tasks.filter(({ data }) => getStatus(data) === "overdue").length;
+    const completed = tasks.filter(({ data }) => getStatus(data) === "completed").length;
+
+    document.getElementById("summary").innerHTML = `
+        <span class="sum-item sum-pending">📋 ${pending} pendiente${pending !== 1 ? "s" : ""}</span>
+        ${overdue > 0 ? `<span class="sum-item sum-overdue">⚠️ ${overdue} tardía${overdue !== 1 ? "s" : ""}</span>` : ""}
+        <span class="sum-item sum-completed">✅ ${completed} completada${completed !== 1 ? "s" : ""}</span>
+    `;
+}
+
+// ── Filtros ───────────────────────────────────────────────────
 window.toggleFilters = function() {
-    const panel  = document.getElementById("filtersPanel");
-    const btn    = document.querySelector(".filters-toggle");
-    const open   = panel.classList.toggle("hidden");
-    btn.textContent = open ? "▼ Filtros" : "▲ Filtros";
+    const panel = document.getElementById("filtersPanel");
+    const btn   = document.querySelector(".filters-toggle");
+    const open  = panel.classList.toggle("hidden");
+    updateFilterBadge(!open);
 };
 
 window.applyFilters = function() {
     renderTasks(window._lastTasks || []);
-    updateFilterBadge();
+    updateFilterBadge(!document.getElementById("filtersPanel").classList.contains("hidden"));
 };
 
 window.clearFilters = function() {
@@ -93,19 +108,63 @@ window.clearFilters = function() {
     applyFilters();
 };
 
-function updateFilterBadge() {
+function updateFilterBadge(isOpen) {
     const p = document.getElementById("filterPersona").value;
     const c = document.getElementById("filterCategoria").value;
     const r = document.getElementById("filterPrioridad").value;
     const active = [p, c, r].filter(v => v !== "todos").length;
-    const btn = document.querySelector(".filters-toggle");
-    const isOpen = !document.getElementById("filtersPanel").classList.contains("hidden");
-    btn.textContent = `${isOpen ? "▲" : "▼"} Filtros${active > 0 ? ` (${active})` : ""}`;
+    document.querySelector(".filters-toggle").textContent =
+        `${isOpen ? "▲" : "▼"} Filtros${active > 0 ? ` (${active})` : ""}`;
 }
+
+// ── Modal ─────────────────────────────────────────────────────
+window.openEditModal = function(id) {
+    const task = window._lastTasks.find(t => t.id === id);
+    if (!task) return;
+    const d = task.data;
+    editingId = id;
+
+    document.getElementById("editText").value     = d.text || "";
+    document.getElementById("editAssigned").value = d.assigned || "";
+    document.getElementById("editCategory").value = d.category || "";
+    document.getElementById("editPriority").value = d.priority || "Media";
+    document.getElementById("editDate").value     = d.dueDate || "";
+    document.getElementById("editNotes").value    = d.notes || "";
+
+    document.getElementById("editModal").classList.remove("hidden");
+};
+
+window.closeModal = function() {
+    document.getElementById("editModal").classList.add("hidden");
+    editingId = null;
+};
+
+window.saveEdit = async function() {
+    if (!editingId) return;
+    const newText = document.getElementById("editText").value.trim();
+    if (!newText) { alert("El nombre no puede estar vacío"); return; }
+
+    await updateDoc(doc(db, "tasks", editingId), {
+        text:     newText,
+        assigned: document.getElementById("editAssigned").value || null,
+        category: document.getElementById("editCategory").value || null,
+        priority: document.getElementById("editPriority").value || "Media",
+        dueDate:  document.getElementById("editDate").value     || null,
+        notes:    document.getElementById("editNotes").value.trim() || null,
+    });
+
+    closeModal();
+};
+
+// Cerrar modal al hacer clic fuera
+document.getElementById("editModal").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+});
 
 // ── Renderizar ────────────────────────────────────────────────
 function renderTasks(tasks) {
     window._lastTasks = tasks;
+    updateSummary(tasks);
     const taskList = document.getElementById("taskList");
     taskList.innerHTML = "";
 
@@ -119,7 +178,6 @@ function renderTasks(tasks) {
         (fr === "todos" || data.priority === fr)
     );
 
-    // Pendientes y tardías arriba, completadas al fondo
     filtered.sort((a, b) => {
         if (a.data.completed === b.data.completed) return 0;
         return a.data.completed ? 1 : -1;
@@ -138,16 +196,16 @@ function renderTasks(tasks) {
         const pCfg = priorityConfig[data.priority] || priorityConfig["Media"];
         li.style.borderRight = `5px solid ${pCfg.color}`;
 
-        const assignedHTML  = data.assigned
+        const assignedHTML = data.assigned
             ? `<span class="badge-pill" style="background:${memberColors[data.assigned]||"#6b7280"}">${data.assigned}</span>` : "";
-        const categoryHTML  = data.category
+        const categoryHTML = data.category
             ? `<span class="badge-pill" style="background:${categoryColors[data.category]||"#6b7280"}">${data.category}</span>` : "";
-        const priorityHTML  = `<span class="badge-pill" style="background:${pCfg.color}">${pCfg.label}</span>`;
-        const dateHTML      = data.dueDate ? `<span class="due-date">📅 ${formatDate(data.dueDate)}</span>` : "";
-        const statusBadge   = status === "overdue"
+        const priorityHTML = `<span class="badge-pill" style="background:${pCfg.color}">${pCfg.label}</span>`;
+        const dateHTML     = data.dueDate ? `<span class="due-date">📅 ${formatDate(data.dueDate)}</span>` : "";
+        const statusBadge  = status === "overdue"
             ? `<span class="badge overdue-badge">Tardía</span>`
             : status === "completed" ? `<span class="badge completed-badge">Completada</span>` : "";
-        const notesHTML     = data.notes ? `<div class="task-notes">${data.notes}</div>` : "";
+        const notesHTML    = data.notes ? `<div class="task-notes">${data.notes}</div>` : "";
 
         li.innerHTML = `
             <div class="task-info">
@@ -158,9 +216,11 @@ function renderTasks(tasks) {
                 </div>
             </div>
             <div class="actions">
-                <button onclick="toggleTask('${id}', ${data.completed})">${data.completed ? "Pendiente" : "Completar"}</button>
-                <button onclick="editTask('${id}')">Editar</button>
-                <button onclick="deleteTask('${id}')">Eliminar</button>
+                <button class="btn-complete" onclick="toggleTask('${id}', ${data.completed})">
+                    ${data.completed ? "Pendiente" : "Completar"}
+                </button>
+                <button class="btn-edit" onclick="openEditModal('${id}')">Editar</button>
+                <button class="btn-delete" onclick="deleteTask('${id}')">Eliminar</button>
             </div>
         `;
         taskList.appendChild(li);
@@ -223,32 +283,6 @@ window.addTask = async function () {
 
 window.toggleTask = async function (id, current) {
     await updateDoc(doc(db, "tasks", id), { completed: !current });
-};
-
-window.editTask = async function (id) {
-    const task = window._lastTasks.find(t => t.id === id);
-    if (!task) return;
-    const d = task.data;
-
-    const newText     = prompt("Nombre de la tarea:", d.text);
-    if (!newText?.trim()) return;
-    const members     = ["Cristian","Andrés","Ignacio","Felipe","Fabian","Diego"];
-    const categories  = ["Producción","Logística","Marketing","Artistas","Finanzas"];
-    const priorities  = ["Alta","Media","Baja"];
-    const newAssigned = prompt(`Responsable (${members.join(", ")}) o vacío:`, d.assigned || "");
-    const newCategory = prompt(`Categoría (${categories.join(", ")}) o vacío:`, d.category || "");
-    const newPriority = prompt(`Prioridad (${priorities.join(", ")}):`, d.priority || "Media");
-    const newNotes    = prompt("Notas:", d.notes || "");
-    const newDate     = prompt("Fecha (YYYY-MM-DD) o vacío:", d.dueDate || "");
-
-    await updateDoc(doc(db, "tasks", id), {
-        text:     newText.trim(),
-        assigned: members.includes(newAssigned?.trim())    ? newAssigned.trim()  : null,
-        category: categories.includes(newCategory?.trim()) ? newCategory.trim()  : null,
-        priority: priorities.includes(newPriority?.trim()) ? newPriority.trim()  : "Media",
-        notes:    newNotes?.trim() || null,
-        dueDate:  newDate?.trim()  || null,
-    });
 };
 
 window.deleteTask = async function (id) {
