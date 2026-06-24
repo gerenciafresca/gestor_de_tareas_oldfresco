@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <div class="container">
+        <h1>Gestor de Tareas</h1>
+
+        <!-- Formulario -->
+        <div class="task-form">
+            <input type="text" id="taskInput" placeholder="Nombre de la tarea">
+
+            <select id="assignedInput">
+                <option value="">— Responsable —</option>
+                <option value="Cristian">Cristian</option>
+                <option value="Andrés">Andrés</option>
+                <option value="Ignacio">Ignacio</option>
+                <option value="Felipe">Felipe</option>
+                <option value="Fabian">Fabian</option>
+                <option value="Diego">Diego</option>
+            </select>
+
+            <select id="categoryInput">
+                <option value="">— Categoría —</option>
+                <option value="Producción">Producción</option>
+                <option value="Logística">Logística</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Artistas">Artistas</option>
+                <option value="Finanzas">Finanzas</option>
+            </select>
+
+            <select id="priorityInput">
+                <option value="Media">Prioridad: Media</option>
+                <option value="Alta">Prioridad: Alta</option>
+                <option value="Baja">Prioridad: Baja</option>
+            </select>
+
+            <input type="date" id="dateInput">
+
+            <textarea id="notesInput" placeholder="Notas (opcional)"></textarea>
+
+            <button onclick="addTask()">Agregar</button>
+        </div>
+
+        <!-- Filtros colapsables -->
+        <div class="filters-wrapper">
+            <button class="filters-toggle" onclick="toggleFilters()">
+                ▼ Filtros
+            </button>
+            <div id="filtersPanel" class="filters-panel hidden">
+
+                <div class="filter-group">
+                    <span class="filter-label">Responsable</span>
+                    <select id="filterPersona" onchange="applyFilters()">
+                        <option value="todos">Todos</option>
+                        <option value="Cristian">Cristian</option>
+                        <option value="Andrés">Andrés</option>
+                        <option value="Ignacio">Ignacio</option>
+                        <option value="Felipe">Felipe</option>
+                        <option value="Fabian">Fabian</option>
+                        <option value="Diego">Diego</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">Categoría</span>
+                    <select id="filterCategoria" onchange="applyFilters()">
+                        <option value="todos">Todas</option>
+                        <option value="Producción">Producción</option>
+                        <option value="Logística">Logística</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Artistas">Artistas</option>
+                        <option value="Finanzas">Finanzas</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">Prioridad</span>
+                    <select id="filterPrioridad" onchange="applyFilters()">
+                        <option value="todos">Todas</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                </div>
+
+                <button class="clear-filters" onclick="clearFilters()">Limpiar filtros</button>
+            </div>
+        </div>
+
+        <ul id="taskList"></ul>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

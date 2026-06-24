@@ -1,0 +1,251 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+/* ── Banner ── */
+.banner {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    max-width: 90%;
+    text-align: center;
+}
+.banner.hidden  { display: none; }
+.banner.info    { background: #2563eb; color: white; }
+.banner.warning { background: #e53e3e; color: white; }
+.banner.success { background: #38a169; color: white; }
+
+/* ── Contenedor ── */
+.container {
+    max-width: 820px;
+    margin: auto;
+    background: white;
+    padding: 24px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1 { text-align: center; margin-bottom: 20px; }
+
+/* ── Formulario ── */
+.task-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.task-form input[type="text"],
+.task-form select,
+.task-form input[type="date"],
+.task-form textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.task-form textarea {
+    grid-column: 1 / -1;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.task-form button {
+    grid-column: 1 / -1;
+    padding: 11px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.task-form button:hover { background: #333; }
+
+/* ── Grupos de filtros ── */
+.filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.filter-label {
+    color: #555;
+    font-weight: bold;
+    min-width: 90px;
+}
+
+.filter-btn {
+    padding: 4px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+.filter-btn:hover  { background: #f0f0f0; }
+.filter-btn.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+
+/* ── Lista ── */
+ul { list-style: none; padding: 0; margin: 16px 0 0; }
+
+.empty { text-align: center; color: #aaa; margin-top: 20px; }
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    border-left: 5px solid #ddd;
+    gap: 10px;
+}
+
+li.pending   { border-left-color: #aaa; background: #fff; }
+li.overdue   { border-left-color: #e53e3e; background: #fff5f5; }
+li.completed { border-left-color: #38a169; background: #f0fff4; }
+
+.task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.task-text { font-size: 15px; font-weight: 600; }
+.crossed   { text-decoration: line-through; color: #aaa; }
+
+.task-notes {
+    font-size: 13px;
+    color: #555;
+    background: #f9f9f9;
+    border-left: 3px solid #ddd;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.badge-pill {
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+.due-date { font-size: 12px; color: #666; }
+
+.badge {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+.overdue-badge   { background: #e53e3e; color: white; }
+.completed-badge { background: #38a169; color: white; }
+
+/* ── Acciones ── */
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.actions button {
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.actions button:hover { background: #f5f5f5; }
+
+/* ── Filtros colapsables ── */
+.filters-wrapper { margin-bottom: 16px; }
+
+.filters-toggle {
+    padding: 8px 18px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+}
+.filters-toggle:hover { background: #f5f5f5; }
+
+.filters-panel {
+    margin-top: 10px;
+    padding: 14px;
+    background: #f9f9f9;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.filters-panel.hidden { display: none; }
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap;
+}
+
+.filter-group select {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+}
+
+.clear-filters {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    font-size: 13px;
+    cursor: pointer;
+    color: #e53e3e;
+    font-weight: bold;
+}
+.clear-filters:hover { background: #fff5f5; }
