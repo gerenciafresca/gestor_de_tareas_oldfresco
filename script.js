@@ -77,13 +77,15 @@ function formatDate(dateStr) {
 
 // ── Resumen ───────────────────────────────────────────────────
 function updateSummary(tasks) {
+    const total     = tasks.length;
     const pending   = tasks.filter(({ data }) => getStatus(data) === "pending").length;
     const overdue   = tasks.filter(({ data }) => getStatus(data) === "overdue").length;
     const completed = tasks.filter(({ data }) => getStatus(data) === "completed").length;
 
     document.getElementById("summary").innerHTML = `
-        <span class="sum-item sum-pending">📋 ${pending} pendiente${pending !== 1 ? "s" : ""}</span>
-        ${overdue > 0 ? `<span class="sum-item sum-overdue">⚠️ ${overdue} tardía${overdue !== 1 ? "s" : ""}</span>` : ""}
+        <span class="sum-item sum-total">📋 ${total} total</span>
+        <span class="sum-item sum-pending">⏳ ${pending} pendiente${pending !== 1 ? "s" : ""}</span>
+        ${overdue > 0 ? `<span class="sum-item sum-overdue">🔴 ${overdue} tardía${overdue !== 1 ? "s" : ""}</span>` : ""}
         <span class="sum-item sum-completed">✅ ${completed} completada${completed !== 1 ? "s" : ""}</span>
     `;
 }
@@ -152,11 +154,9 @@ window.saveEdit = async function() {
         dueDate:  document.getElementById("editDate").value     || null,
         notes:    document.getElementById("editNotes").value.trim() || null,
     });
-
     closeModal();
 };
 
-// Cerrar modal al hacer clic fuera
 document.getElementById("editModal").addEventListener("click", function(e) {
     if (e.target === this) closeModal();
 });
@@ -194,7 +194,7 @@ function renderTasks(tasks) {
         li.classList.add(status);
 
         const pCfg = priorityConfig[data.priority] || priorityConfig["Media"];
-        li.style.borderRight = `5px solid ${pCfg.color}`;
+        li.style.borderRight = `4px solid ${pCfg.color}`;
 
         const assignedHTML = data.assigned
             ? `<span class="badge-pill" style="background:${memberColors[data.assigned]||"#6b7280"}">${data.assigned}</span>` : "";
@@ -217,10 +217,10 @@ function renderTasks(tasks) {
             </div>
             <div class="actions">
                 <button class="btn-complete" onclick="toggleTask('${id}', ${data.completed})">
-                    ${data.completed ? "Pendiente" : "Completar"}
+                    ${data.completed ? "↩ Pendiente" : "✓ Completar"}
                 </button>
                 <button class="btn-edit" onclick="openEditModal('${id}')">Editar</button>
-                <button class="btn-delete" onclick="deleteTask('${id}')">Eliminar</button>
+                <button class="btn-delete" onclick="deleteTask('${id}')" title="Eliminar">🗑</button>
             </div>
         `;
         taskList.appendChild(li);
@@ -286,5 +286,5 @@ window.toggleTask = async function (id, current) {
 };
 
 window.deleteTask = async function (id) {
-    if (confirm("¿Eliminar tarea?")) await deleteDoc(doc(db, "tasks", id));
+    if (confirm("¿Eliminar esta tarea?")) await deleteDoc(doc(db, "tasks", id));
 };
