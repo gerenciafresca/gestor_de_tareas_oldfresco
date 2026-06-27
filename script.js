@@ -20,6 +20,9 @@ const tasksCol = collection(db, "tasks");
 
 let editingId = null;
 
+const ARTISTS = ["Pirlo", "Lucho SSJ", "Akapellah", "Big Soto", "Tussiwarrios", "Kase.O"];
+const GROUP_ORDER = [...ARTISTS, "General"];
+
 const memberColors = {
     "Cristian": "#2563eb", "Andrés": "#7c3aed",
     "Ignacio":  "#0891b2", "Felipe": "#d97706",
@@ -56,8 +59,7 @@ function showBanner(msg, type = "info") {
 function notify(msg, type = "info") {
     showBanner(msg, type);
     if ("Notification" in window && Notification.permission === "granted") {
-        const titles = { info: "📋 Old Fresco", warning: "⚠️ Tarea tardía" };
-        new Notification(titles[type] || "Old Fresco", { body: msg });
+        new Notification("Old Fresco", { body: msg });
     }
 }
 
@@ -83,10 +85,10 @@ function updateSummary(tasks) {
     const completed = tasks.filter(({ data }) => getStatus(data) === "completed").length;
 
     document.getElementById("summary").innerHTML = `
-        <span class="sum-item sum-total">📋 ${total} total</span>
-        <span class="sum-item sum-pending">⏳ ${pending} pendiente${pending !== 1 ? "s" : ""}</span>
-        ${overdue > 0 ? `<span class="sum-item sum-overdue">🔴 ${overdue} tardía${overdue !== 1 ? "s" : ""}</span>` : ""}
-        <span class="sum-item sum-completed">✅ ${completed} completada${completed !== 1 ? "s" : ""}</span>
+        <span class="sum-item sum-total">${total} total</span>
+        <span class="sum-item sum-pending">${pending} pendiente${pending !== 1 ? "s" : ""}</span>
+        ${overdue > 0 ? `<span class="sum-item sum-overdue">${overdue} tardía${overdue !== 1 ? "s" : ""}</span>` : ""}
+        <span class="sum-item sum-completed">${completed} completada${completed !== 1 ? "s" : ""}</span>
     `;
 }
 
@@ -104,17 +106,19 @@ window.applyFilters = function() {
 };
 
 window.clearFilters = function() {
-    document.getElementById("filterPersona").value   = "todos";
-    document.getElementById("filterCategoria").value = "todos";
-    document.getElementById("filterPrioridad").value = "todos";
+    document.getElementById("filterArtist").value   = "todos";
+    document.getElementById("filterPersona").value  = "todos";
+    document.getElementById("filterCategoria").value= "todos";
+    document.getElementById("filterPrioridad").value= "todos";
     applyFilters();
 };
 
 function updateFilterBadge(isOpen) {
+    const a = document.getElementById("filterArtist").value;
     const p = document.getElementById("filterPersona").value;
     const c = document.getElementById("filterCategoria").value;
     const r = document.getElementById("filterPrioridad").value;
-    const active = [p, c, r].filter(v => v !== "todos").length;
+    const active = [a, p, c, r].filter(v => v !== "todos").length;
     document.querySelector(".filters-toggle").textContent =
         `${isOpen ? "▲" : "▼"} Filtros${active > 0 ? ` (${active})` : ""}`;
 }
@@ -127,6 +131,7 @@ window.openEditModal = function(id) {
     editingId = id;
 
     document.getElementById("editText").value     = d.text || "";
+    document.getElementById("editArtist").value   = d.artist || "";
     document.getElementById("editAssigned").value = d.assigned || "";
     document.getElementById("editCategory").value = d.category || "";
     document.getElementById("editPriority").value = d.priority || "Media";
@@ -148,6 +153,7 @@ window.saveEdit = async function() {
 
     await updateDoc(doc(db, "tasks", editingId), {
         text:     newText,
+        artist:   document.getElementById("editArtist").value   || null,
         assigned: document.getElementById("editAssigned").value || null,
         category: document.getElementById("editCategory").value || null,
         priority: document.getElementById("editPriority").value || "Media",
@@ -161,53 +167,24 @@ document.getElementById("editModal").addEventListener("click", function(e) {
     if (e.target === this) closeModal();
 });
 
-// ── Renderizar ────────────────────────────────────────────────
-function renderTasks(tasks) {
-    window._lastTasks = tasks;
-    updateSummary(tasks);
-    const taskList = document.getElementById("taskList");
-    taskList.innerHTML = "";
+// ── Renderizar tarea individual ───────────────────────────────
+function taskHTML(id, data) {
+    const status   = getStatus(data);
+    const pCfg     = priorityConfig[data.priority] || priorityConfig["Media"];
 
-    const fp = document.getElementById("filterPersona")?.value   || "todos";
-    const fc = document.getElementById("filterCategoria")?.value || "todos";
-    const fr = document.getElementById("filterPrioridad")?.value || "todos";
+    const assignedHTML = data.assigned
+        ? `<span class="badge-pill" style="background:${memberColors[data.assigned]||"#6b7280"}">${data.assigned}</span>` : "";
+    const categoryHTML = data.category
+        ? `<span class="badge-pill" style="background:${categoryColors[data.category]||"#6b7280"}">${data.category}</span>` : "";
+    const priorityHTML = `<span class="badge-pill" style="background:${pCfg.color}">${pCfg.label}</span>`;
+    const dateHTML     = data.dueDate ? `<span class="due-date">${formatDate(data.dueDate)}</span>` : "";
+    const statusBadge  = status === "overdue"
+        ? `<span class="badge overdue-badge">Tardía</span>`
+        : status === "completed" ? `<span class="badge completed-badge">Completada</span>` : "";
+    const notesHTML    = data.notes ? `<div class="task-notes">${data.notes}</div>` : "";
 
-    const filtered = tasks.filter(({ data }) =>
-        (fp === "todos" || data.assigned === fp) &&
-        (fc === "todos" || data.category === fc) &&
-        (fr === "todos" || data.priority === fr)
-    );
-
-    filtered.sort((a, b) => {
-        if (a.data.completed === b.data.completed) return 0;
-        return a.data.completed ? 1 : -1;
-    });
-
-    if (filtered.length === 0) {
-        taskList.innerHTML = `<p class="empty">No hay tareas con estos filtros.</p>`;
-        return;
-    }
-
-    filtered.forEach(({ id, data }) => {
-        const status = getStatus(data);
-        const li = document.createElement("li");
-        li.classList.add(status);
-
-        const pCfg = priorityConfig[data.priority] || priorityConfig["Media"];
-        li.style.borderRight = `4px solid ${pCfg.color}`;
-
-        const assignedHTML = data.assigned
-            ? `<span class="badge-pill" style="background:${memberColors[data.assigned]||"#6b7280"}">${data.assigned}</span>` : "";
-        const categoryHTML = data.category
-            ? `<span class="badge-pill" style="background:${categoryColors[data.category]||"#6b7280"}">${data.category}</span>` : "";
-        const priorityHTML = `<span class="badge-pill" style="background:${pCfg.color}">${pCfg.label}</span>`;
-        const dateHTML     = data.dueDate ? `<span class="due-date">📅 ${formatDate(data.dueDate)}</span>` : "";
-        const statusBadge  = status === "overdue"
-            ? `<span class="badge overdue-badge">Tardía</span>`
-            : status === "completed" ? `<span class="badge completed-badge">Completada</span>` : "";
-        const notesHTML    = data.notes ? `<div class="task-notes">${data.notes}</div>` : "";
-
-        li.innerHTML = `
+    return `
+        <li class="task-item ${status}" style="border-right: 4px solid ${pCfg.color}">
             <div class="task-info">
                 <span class="task-text ${status === "completed" ? "crossed" : ""}">${data.text}</span>
                 ${notesHTML}
@@ -217,15 +194,91 @@ function renderTasks(tasks) {
             </div>
             <div class="actions">
                 <button class="btn-complete" onclick="toggleTask('${id}', ${data.completed})">
-                    ${data.completed ? "↩ Pendiente" : "✓ Completar"}
+                    ${data.completed ? "Pendiente" : "Completar"}
                 </button>
                 <button class="btn-edit" onclick="openEditModal('${id}')">Editar</button>
-                <button class="btn-delete" onclick="deleteTask('${id}')" title="Eliminar">🗑</button>
+                <button class="btn-delete" onclick="deleteTask('${id}')" title="Eliminar">✕</button>
+            </div>
+        </li>
+    `;
+}
+
+// ── Renderizar agrupado ───────────────────────────────────────
+function renderTasks(tasks) {
+    window._lastTasks = tasks;
+    updateSummary(tasks);
+
+    const fa = document.getElementById("filterArtist")?.value   || "todos";
+    const fp = document.getElementById("filterPersona")?.value  || "todos";
+    const fc = document.getElementById("filterCategoria")?.value|| "todos";
+    const fr = document.getElementById("filterPrioridad")?.value|| "todos";
+
+    let filtered = tasks.filter(({ data }) =>
+        (fa === "todos" || (data.artist || null) === (fa === "" ? null : fa)) &&
+        (fp === "todos" || data.assigned === fp) &&
+        (fc === "todos" || data.category === fc) &&
+        (fr === "todos" || data.priority === fr)
+    );
+
+    // Agrupar por artista
+    const groups = {};
+    filtered.forEach(task => {
+        const key = task.data.artist || "General";
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(task);
+    });
+
+    // Ordenar dentro de cada grupo: pendientes arriba, completadas abajo
+    Object.values(groups).forEach(g => {
+        g.sort((a, b) => {
+            if (a.data.completed === b.data.completed) return 0;
+            return a.data.completed ? 1 : -1;
+        });
+    });
+
+    const taskList = document.getElementById("taskList");
+
+    if (Object.keys(groups).length === 0) {
+        taskList.innerHTML = `<p class="empty">No hay tareas con estos filtros.</p>`;
+        return;
+    }
+
+    // Ordenar grupos: artistas primero, General al final
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const ai = GROUP_ORDER.indexOf(a);
+        const bi = GROUP_ORDER.indexOf(b);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+
+    taskList.innerHTML = sortedKeys.map(key => {
+        const groupTasks = groups[key];
+        const pending  = groupTasks.filter(t => !t.data.completed).length;
+        const total    = groupTasks.length;
+
+        return `
+            <div class="group">
+                <div class="group-header" onclick="toggleGroup('${key}')">
+                    <div class="group-title">
+                        <span class="group-name">${key}</span>
+                        <span class="group-count">${pending} pendiente${pending !== 1 ? "s" : ""} · ${total} total</span>
+                    </div>
+                    <span class="group-chevron" id="chevron-${key.replace(/\s/g,'-').replace(/\./g,'')}">▼</span>
+                </div>
+                <ul class="group-list" id="group-${key.replace(/\s/g,'-').replace(/\./g,'')}">
+                    ${groupTasks.map(({ id, data }) => taskHTML(id, data)).join("")}
+                </ul>
             </div>
         `;
-        taskList.appendChild(li);
-    });
+    }).join("");
 }
+
+window.toggleGroup = function(key) {
+    const safeKey = key.replace(/\s/g,'-').replace(/\./g,'');
+    const list    = document.getElementById(`group-${safeKey}`);
+    const chevron = document.getElementById(`chevron-${safeKey}`);
+    list.classList.toggle("collapsed");
+    chevron.textContent = list.classList.contains("collapsed") ? "▶" : "▼";
+};
 
 // ── Firebase listener ─────────────────────────────────────────
 let firstLoad = true;
@@ -239,7 +292,7 @@ onSnapshot(q, (snapshot) => {
     if (firstLoad) {
         tasks.forEach(t => knownIds.add(t.id));
         const overdue = tasks.filter(({ data }) => getStatus(data) === "overdue");
-        if (overdue.length > 0) notify(`⚠️ Tenés ${overdue.length} tarea(s) tardía(s).`, "warning");
+        if (overdue.length > 0) notify(`${overdue.length} tarea(s) tardía(s).`);
         firstLoad = false;
         return;
     }
@@ -248,15 +301,15 @@ onSnapshot(q, (snapshot) => {
         if (change.type === "added" && !knownIds.has(change.doc.id)) {
             knownIds.add(change.doc.id);
             const data = change.doc.data();
-            const who  = data.assigned ? ` → ${data.assigned}` : "";
-            notify(`📌 Nueva tarea: "${data.text}"${who}`, "info");
+            const who  = data.assigned ? ` — ${data.assigned}` : "";
+            notify(`Nueva tarea: "${data.text}"${who}`);
         }
     });
 });
 
 setInterval(() => {
     const overdue = (window._lastTasks || []).filter(({ data }) => getStatus(data) === "overdue");
-    if (overdue.length > 0) notify(`⚠️ ${overdue.length} tarea(s) tardía(s).`, "warning");
+    if (overdue.length > 0) notify(`${overdue.length} tarea(s) tardía(s).`, "warning");
 }, 30 * 60 * 1000);
 
 // ── CRUD ──────────────────────────────────────────────────────
@@ -266,16 +319,18 @@ window.addTask = async function () {
 
     await addDoc(tasksCol, {
         text,
-        assigned:  document.getElementById("assignedInput").value  || null,
-        category:  document.getElementById("categoryInput").value  || null,
-        priority:  document.getElementById("priorityInput").value  || "Media",
+        artist:    document.getElementById("artistInput").value   || null,
+        assigned:  document.getElementById("assignedInput").value || null,
+        category:  document.getElementById("categoryInput").value || null,
+        priority:  document.getElementById("priorityInput").value || "Media",
         notes:     document.getElementById("notesInput").value.trim() || null,
-        dueDate:   document.getElementById("dateInput").value      || null,
+        dueDate:   document.getElementById("dateInput").value     || null,
         completed: false,
         createdAt: Date.now()
     });
 
     ["taskInput","notesInput","dateInput"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("artistInput").value   = "";
     document.getElementById("assignedInput").value = "";
     document.getElementById("categoryInput").value = "";
     document.getElementById("priorityInput").value = "Media";

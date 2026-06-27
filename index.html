@@ -23,6 +23,18 @@
 
                 <div class="form-row">
                     <div>
+                        <label>Artista / Evento</label>
+                        <select id="editArtist">
+                            <option value="">— General —</option>
+                            <option value="Pirlo">Pirlo</option>
+                            <option value="Lucho SSJ">Lucho SSJ</option>
+                            <option value="Akapellah">Akapellah</option>
+                            <option value="Big Soto">Big Soto</option>
+                            <option value="Tussiwarrios">Tussiwarrios</option>
+                            <option value="Kase.O">Kase.O</option>
+                        </select>
+                    </div>
+                    <div>
                         <label>Responsable</label>
                         <select id="editAssigned">
                             <option value="">— Sin asignar —</option>
@@ -34,6 +46,9 @@
                             <option value="Diego">Diego</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div>
                         <label>Categoría</label>
                         <select id="editCategory">
@@ -45,9 +60,6 @@
                             <option value="Finanzas">Finanzas</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-row">
                     <div>
                         <label>Prioridad</label>
                         <select id="editPriority">
@@ -56,11 +68,10 @@
                             <option value="Baja">Baja</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Fecha de vencimiento</label>
-                        <input type="date" id="editDate">
-                    </div>
                 </div>
+
+                <label>Fecha de vencimiento</label>
+                <input type="date" id="editDate">
 
                 <label>Notas</label>
                 <textarea id="editNotes" placeholder="Notas (opcional)"></textarea>
@@ -95,6 +106,18 @@
 
                 <div class="form-row">
                     <div>
+                        <label>Artista / Evento</label>
+                        <select id="artistInput">
+                            <option value="">— General —</option>
+                            <option value="Pirlo">Pirlo</option>
+                            <option value="Lucho SSJ">Lucho SSJ</option>
+                            <option value="Akapellah">Akapellah</option>
+                            <option value="Big Soto">Big Soto</option>
+                            <option value="Tussiwarrios">Tussiwarrios</option>
+                            <option value="Kase.O">Kase.O</option>
+                        </select>
+                    </div>
+                    <div>
                         <label>Responsable</label>
                         <select id="assignedInput">
                             <option value="">— Sin asignar —</option>
@@ -106,6 +129,9 @@
                             <option value="Diego">Diego</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div>
                         <label>Categoría</label>
                         <select id="categoryInput">
@@ -117,9 +143,6 @@
                             <option value="Finanzas">Finanzas</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-row">
                     <div>
                         <label>Prioridad</label>
                         <select id="priorityInput">
@@ -128,11 +151,10 @@
                             <option value="Baja">Baja</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Fecha de vencimiento</label>
-                        <input type="date" id="dateInput">
-                    </div>
                 </div>
+
+                <label>Fecha de vencimiento</label>
+                <input type="date" id="dateInput">
 
                 <label>Notas</label>
                 <textarea id="notesInput" placeholder="Detalles, links, contactos..."></textarea>
@@ -143,8 +165,21 @@
 
         <!-- Filtros -->
         <div class="filters-wrapper">
-            <button class="filters-toggle" onclick="toggleFilters()">▼ Filtros</button>
+            <button class="filters-toggle" onclick="toggleFilters()">Filtros</button>
             <div id="filtersPanel" class="filters-panel hidden">
+                <div class="filter-group">
+                    <span class="filter-label">Artista</span>
+                    <select id="filterArtist" onchange="applyFilters()">
+                        <option value="todos">Todos</option>
+                        <option value="">General</option>
+                        <option value="Pirlo">Pirlo</option>
+                        <option value="Lucho SSJ">Lucho SSJ</option>
+                        <option value="Akapellah">Akapellah</option>
+                        <option value="Big Soto">Big Soto</option>
+                        <option value="Tussiwarrios">Tussiwarrios</option>
+                        <option value="Kase.O">Kase.O</option>
+                    </select>
+                </div>
                 <div class="filter-group">
                     <span class="filter-label">Responsable</span>
                     <select id="filterPersona" onchange="applyFilters()">
@@ -177,11 +212,12 @@
                         <option value="Baja">Baja</option>
                     </select>
                 </div>
-                <button class="clear-filters" onclick="clearFilters()">✕ Limpiar</button>
+                <button class="clear-filters" onclick="clearFilters()">Limpiar</button>
             </div>
         </div>
 
-        <ul id="taskList"></ul>
+        <!-- Lista agrupada -->
+        <div id="taskList"></div>
     </div>
 
     <script type="module" src="script.js"></script>
